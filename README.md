@@ -1,3 +1,6 @@
+This is a WIP to split up Community-Server into multiple dockers.
+
+
 <p align="center">
 	<a href="https://www.onlyoffice.com/"><img alt="https://www.onlyoffice.com/" width="500px" src="https://static-www.onlyoffice.com/images/logo_small.svg"></a>
 </p>
