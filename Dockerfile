@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 ARG RELEASE_DATE="2016-06-21"
 ARG RELEASE_DATE_SIGN=""
@@ -35,8 +35,11 @@ RUN apt-get -y update && \
                         software-properties-common \
                         curl \
                         wget \
-                        sudo && \
-    cd /lib/systemd/system/sysinit.target.wants/ && ls | grep -v systemd-tmpfiles-setup | xargs rm -f $1 && \
+                        sudo \
+                        python3 \
+                        git
+
+RUN cd /lib/systemd/system/sysinit.target.wants/ && ls | grep -v systemd-tmpfiles-setup | xargs rm -f $1 && \
     rm -f /lib/systemd/system/multi-user.target.wants/* \
     /etc/systemd/system/*.wants/* \
     /lib/systemd/system/local-fs.target.wants/* \
@@ -45,57 +48,77 @@ RUN apt-get -y update && \
     /lib/systemd/system/basic.target.wants/* \
     /lib/systemd/system/anaconda.target.wants/* \
     /lib/systemd/system/plymouth* \
-    /lib/systemd/system/systemd-update-utmp* && \
-    locale-gen en_US.UTF-8 && \
-    echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
-    echo "${SOURCE_REPO_URL}" >> /etc/apt/sources.list && \
-    echo "deb https://download.mono-project.com/repo/ubuntu stable-bionic/snapshots/6.8.0.123 main" | tee /etc/apt/sources.list.d/mono-official.list && \
-    echo "deb https://d2nlctn12v279m.cloudfront.net/repo/mono/ubuntu bionic main" | tee /etc/apt/sources.list.d/mono-extra.list && \    
-    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys CB2DE8E5 && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF && \
-    wget http://nginx.org/keys/nginx_signing.key && \
-    apt-key add nginx_signing.key && \
-    echo "deb http://nginx.org/packages/ubuntu/ bionic nginx" >> /etc/apt/sources.list.d/nginx.list && \
-    wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add - && \
-    echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" | tee -a /etc/apt/sources.list.d/elastic-7.x.list && \
-    add-apt-repository -y ppa:certbot/certbot && \
-    add-apt-repository -y ppa:chris-lea/redis-server && \
-    curl -sSL https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
-    echo "deb [arch=amd64] https://packages.microsoft.com/ubuntu/18.04/prod bionic main" >> /etc/apt/sources.list.d/microsoft-prod.list && \
-    curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash - && \
-    apt-get install -yq gnupg2 \
+    /lib/systemd/system/systemd-update-utmp*
+RUN locale-gen en_US.UTF-8
+RUN    echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d
+RUN    echo "${SOURCE_REPO_URL}" >> /etc/apt/sources.list
+#RUN    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys CB2DE8E5
+RUN sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys CB2DE8E5
+#RUN    echo "deb https://download.mono-project.com/repo/ubuntu stable-jammy/snapshots/6.8.0.123 main" | tee /etc/apt/sources.list.d/mono-official.list
+#RUN    echo "deb https://download.mono-project.com/repo/ubuntu stable-focal/snapshots/6.12 main" | tee /etc/apt/sources.list.d/mono-official.list
+#RUN    echo "deb https://download.mono-project.com/repo/ubuntu stable-focal/snapshots/6.8.0.123 main" | tee /etc/apt/sources.list.d/mono-official.list
+RUN    echo "deb https://download.mono-project.com/repo/ubuntu focal/snapshots/6.8.0.123 main" | tee /etc/apt/sources.list.d/mono-official.list
+RUN    echo "deb https://d2nlctn12v279m.cloudfront.net/repo/mono/ubuntu bionic main" | tee /etc/apt/sources.list.d/mono-extra.list
+RUN    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+RUN    wget http://nginx.org/keys/nginx_signing.key
+RUN    apt-key add nginx_signing.key
+RUN    echo "deb http://nginx.org/packages/ubuntu/ focal nginx" >> /etc/apt/sources.list.d/nginx.list
+RUN    wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add -
+RUN    echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" | tee -a /etc/apt/sources.list.d/elastic-7.x.list
+# RUN    add-apt-repository -y ppa:certbot/certbot 
+# RUN    add-apt-repository -y ppa:chris-lea/redis-server 
+RUN    curl -sSL https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+RUN    echo "deb [arch=amd64] https://packages.microsoft.com/ubuntu/20.04/prod focal main" >> /etc/apt/sources.list.d/microsoft-prod.list
+RUN    curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+
+# RUN add-apt-repository universe
+RUN sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu bionic main"
+RUN sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu focal universe security"
+RUN apt-get -y update
+
+RUN    apt-get install -yq gnupg2 \
                         ca-certificates \
                         software-properties-common \
                         cron \
                         rsyslog \
-			ruby-dev \
-			ruby-god \
+                        ruby-dev \
+                        ruby-god \
                         nodejs \
                         nginx \
                         gdb \
-                        mono-complete \
-                        ca-certificates-mono \
-                        python-certbot-nginx \
+                        python3-certbot-nginx \
                         htop \
                         nano \
                         dnsutils \
                         redis-server \
                         python3-pip \
-                        multiarch-support \
+#                        multiarch-support \
                         iproute2 \
                         ffmpeg \
                         jq \
-                        apt-transport-https \
+                        apt-transport-https
+
+RUN    apt-get install -yq mono-complete \
                         elasticsearch=${ELASTICSEARCH_VERSION} \
                         mono-webserver-hyperfastcgi=0.4-7 \
-                        dotnet-sdk-6.0 \
-                        ${PACKAGE_SYSNAME}-communityserver \
-                        ${PACKAGE_SYSNAME}-xmppserver && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+                        mono-webserver-hyperfastcgi \
+#                        mono-webserver-fastcgi \
+                        ca-certificates-mono \
+                        dotnet-sdk-6.0
+RUN    apt-get install -yq ${PACKAGE_SYSNAME}-communityserver \
+                        ${PACKAGE_SYSNAME}-xmppserver
+
+RUN    apt-get clean
+
+RUN git clone https://github.com/gdraheim/docker-systemctl-replacement /opt/systemctl-github && \
+    rm -f /bin/systemctl && \
+    ln -s /opt/systemctl-github/files/docker/systemctl.py /bin/systemctl
+
+RUN    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY config /app/config/
 COPY assets /app/assets/
+#RUN chmod +x 
 COPY run-community-server.sh /app/run-community-server.sh
 
 RUN chmod -R 755 /app/*.sh
